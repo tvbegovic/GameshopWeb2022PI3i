@@ -1,4 +1,6 @@
-﻿namespace GameshopWeb
+﻿using System.Text.Json.Serialization;
+
+namespace GameshopWeb
 {
     public class Company
     {
@@ -35,6 +37,7 @@
         public string Lastname { get; set; }
         public string Address { get; set; }
         public string Email { get; set; }
+        [JsonIgnore]
         public string? Password { get; set; }
         public bool? Admin { get; set; }
         public string City { get; set; }

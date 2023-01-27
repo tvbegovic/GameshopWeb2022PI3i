@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Data.SqlClient;
 using Dapper;
+using Microsoft.AspNetCore.Authorization;
 
 namespace GameshopWeb.Controllers
 {
@@ -15,7 +16,7 @@ namespace GameshopWeb.Controllers
             _configuration = configuration;
         }
 
-        [HttpGet("genres")]
+        [HttpGet("genres")]        
         public List<Genre> GetGenres()
         {
             using(var conn = new SqlConnection(_configuration.GetConnectionString("gameshop")))
@@ -67,5 +68,49 @@ namespace GameshopWeb.Controllers
                     new { text = $"%{text}%" }).ToList();
             }
         }
+
+        [HttpPost("")]
+        [Authorize]
+        public Game Create(Game game)
+        {
+            using (var conn = new SqlConnection(_configuration.GetConnectionString("gameshop")))
+            {
+                var sql = @"INSERT INTO Game(
+                    title,idGenre,idPublisher,price,idDeveloper,releaseDate,image
+                    ) OUTPUT inserted.id VALUES(
+                    @title,@idGenre,@idPublisher,@price,@idDeveloper,@releaseDate,@image
+                    )";
+                game.Id = conn.ExecuteScalar<int>(sql, game);
+                return game;
+            }
+        }
+
+        [HttpPut("")]
+        [Authorize]
+        public void Update(Game game)
+        {
+            using (var conn = new SqlConnection(_configuration.GetConnectionString("gameshop")))
+            {
+                var sql = @"UPDATE Game SET 
+                title=@title,idGenre=@idGenre,idPublisher=@idPublisher,price=@price,idDeveloper=@idDeveloper,
+                releaseDate=@releaseDate,image=@image
+                WHERE id = @id
+                ";
+                conn.Execute(sql, game);
+            }
+        }
+
+        [HttpDelete("{id}")]
+        [Authorize]
+        public void Delete(int id)
+        {
+            using (var conn = new SqlConnection(_configuration.GetConnectionString("gameshop")))
+            {
+                var sql = "DELETE FROM Game WHERE id = @id";
+                conn.Execute(sql, new { id });
+            }
+        }
+
+
     }
 }
